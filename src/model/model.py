@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
 
+import anthropic
 import google.generativeai as genai
 import google.ai.generativelanguage as glm
 import groq
@@ -29,10 +29,20 @@ class BaseModel(ABC):
 
 class AnthropicModel(BaseModel):
     def __init__(self, model_name: str) -> None:
-        pass
+        self.client = anthropic.Anthropic()
+        self.model_name = model_name
+        self.generator_config = generator_config
 
     def invoke(self, messages: Messages) -> Message:
-        pass
+        chat_completion = self.client.messages.create(
+            model=self.model_name,
+            system=messages.system_prompt,
+            messages=messages.to_list()[1:],
+            max_tokens=4096,  # TODO 別のところで定義する
+            **self.generator_config,
+        )
+        model_content = chat_completion.content[0].text.strip()
+        return Message(role="assistant", content=model_content)
 
 
 class GoogleModel(BaseModel):
@@ -42,40 +52,10 @@ class GoogleModel(BaseModel):
             generation_config=generator_config,
         )
 
-    @staticmethod
-    def messages_to_history(
-        messages: Messages,
-    ) -> Tuple[List[glm.Content], glm.Content]:
-        """GPT形式 -> Gemini形式"""
-        _messages = messages.to_list()
-        system_message, chat_messages = _messages[0], _messages[1:]
-        system_history = [
-            # system prompt
-            glm.Content(
-                role="user",
-                parts=[glm.Part(text=system_message["content"])],
-            ),
-            # dummy model response
-            glm.Content(
-                role="model",
-                parts=[glm.Part(text="こんにちは！どのようにお手伝いしましょうか？")],
-            ),
-        ]
-        chat_history = [
-            glm.Content(
-                role="model" if m["role"] == "assistant" else "user",
-                parts=[glm.Part(text=m["content"])],
-            )
-            for m in chat_messages
-        ]
-        history = system_history + chat_history
-        history, user_content = history[:-1], history[-1]
-        return history, user_content
-
     def invoke(self, messages: Messages) -> Message:
-        history, user_content = self.messages_to_history(messages=messages)
-        chat = self.client.start_chat(history=history)
-        chat.send_message(content=user_content)
+        glm_messages: list[glm.Content] = messages.to_glm()
+        chat = self.client.start_chat(history=glm_messages[:-1])
+        chat.send_message(content=glm_messages[-1])
         return Message(role="assistant", content=chat.last.text)
 
 
@@ -91,8 +71,8 @@ class GroqModel(BaseModel):
             model=self.model_name,
             **generator_config,
         )
-        model_response = chat_completion.choices[0].message.content.strip()
-        return Message(role="assistant", content=model_response)
+        model_content = chat_completion.choices[0].message.content.strip()
+        return Message(role="assistant", content=model_content)
 
 
 class ModelSelector:

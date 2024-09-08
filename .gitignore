@@ -163,3 +163,4 @@ cython_debug/
 
 logs/model_response.md
 **/.DS_Store
+**/history.jsonl
