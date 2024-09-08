@@ -1,0 +1,21 @@
+# model_provider
+google-generativeai
+anthropic
+groq
+openai
+
+# tools
+# pyperclip
+# selenium
+# beautifulsoup4
+
+# utils
+# attributedict
+# python-dotenv
+pyyaml
+# toolz
+
+# deployment
+flask
+# fastapi
+# uvicorn
