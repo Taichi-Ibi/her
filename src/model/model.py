@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple
 
+import google.generativeai as genai
+import google.ai.generativelanguage as glm
 import groq
 
 from src.message import Message, Messages
@@ -34,10 +37,46 @@ class AnthropicModel(BaseModel):
 
 class GoogleModel(BaseModel):
     def __init__(self, model_name: str) -> None:
-        pass
+        self.client = genai.GenerativeModel(
+            model_name=model_name,
+            generation_config=generator_config,
+        )
+
+    @staticmethod
+    def messages_to_history(
+        messages: Messages,
+    ) -> Tuple[List[glm.Content], glm.Content]:
+        """GPT形式 -> Gemini形式"""
+        _messages = messages.to_list()
+        system_message, chat_messages = _messages[0], _messages[1:]
+        system_history = [
+            # system prompt
+            glm.Content(
+                role="user",
+                parts=[glm.Part(text=system_message["content"])],
+            ),
+            # dummy model response
+            glm.Content(
+                role="model",
+                parts=[glm.Part(text="こんにちは！どのようにお手伝いしましょうか？")],
+            ),
+        ]
+        chat_history = [
+            glm.Content(
+                role="model" if m["role"] == "assistant" else "user",
+                parts=[glm.Part(text=m["content"])],
+            )
+            for m in chat_messages
+        ]
+        history = system_history + chat_history
+        history, user_content = history[:-1], history[-1]
+        return history, user_content
 
     def invoke(self, messages: Messages) -> Message:
-        pass
+        history, user_content = self.messages_to_history(messages=messages)
+        chat = self.client.start_chat(history=history)
+        chat.send_message(content=user_content)
+        return Message(role="assistant", content=chat.last.text)
 
 
 class GroqModel(BaseModel):
@@ -53,7 +92,7 @@ class GroqModel(BaseModel):
             **generator_config,
         )
         model_response = chat_completion.choices[0].message.content.strip()
-        return Message(role="model", content=model_response)
+        return Message(role="assistant", content=model_response)
 
 
 class ModelSelector:

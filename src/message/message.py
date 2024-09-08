@@ -1,7 +1,7 @@
 from typing import Literal, TypedDict, Iterator
 from dataclasses import dataclass, asdict
 
-VALID_ROLES = Literal["system", "user", "model"]
+VALID_ROLES = Literal["system", "user", "assistant"]
 
 class MessageDict(TypedDict):
     role: VALID_ROLES
@@ -13,7 +13,7 @@ class Message:
     content: str
 
     def __post_init__(self):
-        if self.role not in ("system", "user", "model"):
+        if self.role not in ("system", "user", "assistant"):
             raise ValueError(f"Invalid role: {self.role}")
 
     @property
