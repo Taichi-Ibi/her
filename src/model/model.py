@@ -12,15 +12,11 @@ from src.utils import load_yaml_file
 generator_config = load_yaml_file("src/config/generator_config.yaml")
 
 
-class ModelIdentifier:
-    model_alias_dict = load_yaml_file("src/config/model/model_alias.yaml")
-
-    def __init__(self, model_alias: str) -> None:
-        _model_id = self.model_alias_dict[model_alias]
-        self.model_provider, self.model_name = _model_id.split("/")
-
-
 class BaseModel(ABC):
+
+    def __init__(self, model_name: str) -> None:
+        self.model_name = model_name
+        self.generator_config = generator_config
 
     @abstractmethod
     def invoke(self):
@@ -28,10 +24,10 @@ class BaseModel(ABC):
 
 
 class AnthropicModel(BaseModel):
-    def __init__(self, model_name: str) -> None:
-        self.client = anthropic.Anthropic()
-        self.model_name = model_name
-        self.generator_config = generator_config
+
+    @property
+    def client(self) -> anthropic.Anthropic:
+        return anthropic.Anthropic()
 
     def invoke(self, messages: Messages) -> Message:
         chat_completion = self.client.messages.create(
@@ -46,10 +42,12 @@ class AnthropicModel(BaseModel):
 
 
 class GoogleModel(BaseModel):
-    def __init__(self, model_name: str) -> None:
-        self.client = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=generator_config,
+
+    @property
+    def client(self) -> genai.GenerativeModel:
+        return genai.GenerativeModel(
+            model_name=self.model_name,
+            generation_config=self.generator_config,
         )
 
     def invoke(self, messages: Messages) -> Message:
@@ -60,10 +58,9 @@ class GoogleModel(BaseModel):
 
 
 class GroqModel(BaseModel):
-    def __init__(self, model_name: str) -> None:
-        self.client = groq.Groq()
-        self.model_name = model_name
-        self.generator_config = generator_config
+    @property
+    def client(self) -> groq.Groq:
+        return groq.Groq()
 
     def invoke(self, messages: Messages) -> Message:
         chat_completion = self.client.chat.completions.create(
@@ -73,6 +70,14 @@ class GroqModel(BaseModel):
         )
         model_content = chat_completion.choices[0].message.content.strip()
         return Message(role="assistant", content=model_content)
+
+
+class ModelIdentifier:
+    model_alias_dict = load_yaml_file("src/config/model/model_alias.yaml")
+
+    def __init__(self, model_alias: str) -> None:
+        _model_id = self.model_alias_dict[model_alias]
+        self.model_provider, self.model_name = _model_id.split("/")
 
 
 class ModelSelector:
