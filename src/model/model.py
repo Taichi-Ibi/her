@@ -6,17 +6,31 @@ import google.ai.generativelanguage as glm
 import groq
 
 from src.message import Message, Messages
-from src.utils import load_yaml_file
+from src.utils import load_yaml_file, rename_key
 
 
-generator_config = load_yaml_file("src/config/generator_config.yaml")
+class GeneratorConfig:
+    def __init__(self) -> None:
+        config_path = "src/config/generator_config.yaml"
+        self._generator_config = load_yaml_file(config_path)
+
+    def to_anthropic(self) -> dict[str, int | float]:
+        return {**self._generator_config}
+
+    def to_google(self) -> dict[str, int | float]:
+        return rename_key(
+            self._generator_config, old_key="max_tokens", new_key="max_output_tokens"
+        )
+
+    def to_groq(self) -> dict[str, int | float]:
+        return {**self._generator_config}
 
 
 class BaseModel(ABC):
 
     def __init__(self, model_name: str) -> None:
         self.model_name = model_name
-        self.generator_config = generator_config
+        self.generator_config = GeneratorConfig()
 
     @abstractmethod
     def invoke(self):
@@ -34,7 +48,6 @@ class AnthropicModel(BaseModel):
             model=self.model_name,
             system=messages.system_prompt,
             messages=messages.to_list()[1:],
-            max_tokens=4096,  # TODO 別のところで定義する
             **self.generator_config,
         )
         model_content = chat_completion.content[0].text.strip()
@@ -47,7 +60,7 @@ class GoogleModel(BaseModel):
     def client(self) -> genai.GenerativeModel:
         return genai.GenerativeModel(
             model_name=self.model_name,
-            generation_config=self.generator_config,
+            generation_config=self.generator_config.to_google(),
         )
 
     def invoke(self, messages: Messages) -> Message:
@@ -66,7 +79,7 @@ class GroqModel(BaseModel):
         chat_completion = self.client.chat.completions.create(
             messages=messages.to_list(),
             model=self.model_name,
-            **generator_config,
+            **self.generator_config.to_groq(),
         )
         model_content = chat_completion.choices[0].message.content.strip()
         return Message(role="assistant", content=model_content)
