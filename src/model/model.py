@@ -12,7 +12,7 @@ from src.utils import load_yaml_file, rename_key
 class GeneratorConfig:
     def __init__(self) -> None:
         config_path = "src/config/generator_config.yaml"
-        self._generator_config = load_yaml_file(config_path)
+        self._generator_config: dict[str, int | float] = load_yaml_file(config_path)
 
     def to_anthropic(self) -> dict[str, int | float]:
         return {**self._generator_config}
