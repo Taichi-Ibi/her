@@ -66,8 +66,8 @@ class GoogleModel(BaseModel):
     def invoke(self, messages: Messages) -> Message:
         glm_messages: list[glm.Content] = messages.to_glm()
         chat = self.client.start_chat(history=glm_messages[:-1])
-        chat.send_message(content=glm_messages[-1])
-        return Message(role="assistant", content=chat.last.text)
+        model_content = chat.send_message(content=glm_messages[-1])
+        return Message(role="assistant", content=model_content.text.strip())
 
 
 class GroqModel(BaseModel):
