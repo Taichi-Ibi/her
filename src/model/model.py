@@ -97,12 +97,15 @@ class ModelSelector:
     def __init__(self, model_id: ModelIdentifier) -> None:
         self.model_provider = model_id.model_provider
         self.model_name = model_id.model_name
+
+    @property
+    def model(self) -> BaseModel:
         match self.model_provider:
             case "anthropic":
-                self.model = AnthropicModel(model_name=self.model_name)
+                return AnthropicModel(model_name=self.model_name)
             case "google":
-                self.model = GoogleModel(model_name=self.model_name)
+                return GoogleModel(model_name=self.model_name)
             case "groq":
-                self.model = GroqModel(model_name=self.model_name)
+                return GroqModel(model_name=self.model_name)
             case _:
                 raise ValueError(f"Invalid model provider: {self.model_provider}")
