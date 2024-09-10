@@ -5,7 +5,7 @@ from src.message import Messages
 
 
 class Memory:
-    history_path = Path("src/memory/history.jsonl")
+    history_path = Path("logs/history.jsonl")
 
     def __init__(self) -> None:
         pass
