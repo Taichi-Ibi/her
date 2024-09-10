@@ -7,13 +7,16 @@ from src.model import ModelIdentifier
 
 app = FastAPI()
 
+
 class UserRequest(BaseModel):
     model_alias: str
     user_prompt: str
 
+
 @app.get("/")
 async def home():
     return "Welcome to the FastAPI app!"
+
 
 @app.post("/")
 async def process_request(request: UserRequest):
@@ -27,6 +30,8 @@ async def process_request(request: UserRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
