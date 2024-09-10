@@ -32,11 +32,24 @@ class Messages:
     def __iter__(self) -> Iterator[Message]:
         return iter(self._messages)
 
+    def __len__(self) -> int:
+        return len(self._messages)
+
+    def __add__(self, other: 'Messages') -> 'Messages':
+        return Messages(self._messages + other._messages)
+
+    def __iadd__(self, other: 'Messages') -> 'Messages':
+        self._messages.extend(other._messages)
+        return self
+
     def to_list(self) -> list[MessageDict]:
         return [message.as_dict for message in self]
 
     def add(self, message: Message) -> None:
         self._messages.append(message)
+
+    def add_multiple(self, messages: list[Message]) -> None:
+        self._messages.extend(messages)
 
     @property
     def system_prompt(self) -> str:

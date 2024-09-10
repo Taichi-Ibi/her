@@ -23,6 +23,7 @@ async def process_request(request: UserRequest):
     try:
         model_id = ModelIdentifier(model_alias=request.model_alias)
         her = Her()
+        her.remember()
         model_message: Message = her.invoke(
             model_id=model_id, user_prompt=request.user_prompt
         )
