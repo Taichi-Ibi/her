@@ -10,7 +10,7 @@ from src.config import GeneratorConfig
 from src.utils import load_yaml_file
 
 
-class BaseModel(ABC, GeneratorConfig):
+class BaseLanguageModel(ABC, GeneratorConfig):
 
     def __init__(self, model_name: str) -> None:
         super().__init__()  # Initialize GeneratorConfig
@@ -21,7 +21,7 @@ class BaseModel(ABC, GeneratorConfig):
         pass
 
 
-class AnthropicModel(BaseModel):
+class AnthropicModel(BaseLanguageModel):
 
     @property
     def client(self) -> anthropic.Anthropic:
@@ -38,7 +38,7 @@ class AnthropicModel(BaseModel):
         return Message(role="assistant", content=model_content)
 
 
-class GoogleModel(BaseModel):
+class GoogleModel(BaseLanguageModel):
 
     @property
     def client(self) -> genai.GenerativeModel:
@@ -54,7 +54,7 @@ class GoogleModel(BaseModel):
         return Message(role="assistant", content=model_content.text.strip())
 
 
-class GroqModel(BaseModel):
+class GroqModel(BaseLanguageModel):
     @property
     def client(self) -> groq.Groq:
         return groq.Groq()
@@ -83,7 +83,7 @@ class ModelSelector:
         self.model_name = model_id.model_name
 
     @property
-    def model(self) -> BaseModel:
+    def model(self) -> BaseLanguageModel:
         match self.model_provider:
             case "anthropic":
                 return AnthropicModel(model_name=self.model_name)
