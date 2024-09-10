@@ -16,6 +16,8 @@ pyyaml
 # toolz
 
 # deployment
-flask
+# flask
+uvicorn
+fastapi
 # fastapi
 # uvicorn
