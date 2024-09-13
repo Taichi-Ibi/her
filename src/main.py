@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from src.her import Her
 from src.message import Message
 from src.model import ModelIdentifier
+from src.utils import copy_code_to_clipboard
 
 app = FastAPI()
 
@@ -26,6 +27,7 @@ async def process_request(request: UserRequest):
         model_message: Message = her.invoke(
             model_id=model_id, user_prompt=request.user_prompt
         )
+        copy_code_to_clipboard(model_message.content)
         return model_message.__dict__
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

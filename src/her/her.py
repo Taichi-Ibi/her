@@ -5,7 +5,6 @@ from src.memory import Memory
 from src.message import Message, Messages
 from src.model import ModelSelector, ModelIdentifier
 from src.prompt import Prompt
-from src.utils import load_jsonl_file
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,6 +20,13 @@ class Her:
     def _prep_messages(self, user_prompt: str) -> Messages:
         self.memory.load()
         self.history = self.memory.history
+        if not self.history or user_prompt == self.history[-2].content:
+            return Messages(
+                messages=[
+                    Message(role="system", content=self.prompt.system_prompt),
+                    Message(role="user", content=user_prompt),
+                ]
+            )
         judge_model = ModelSelector(model_id=ModelIdentifier("flm")).model
         self.judge_messages.extend(
             messages=Messages(
