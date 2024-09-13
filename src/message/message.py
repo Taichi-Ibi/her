@@ -35,6 +35,11 @@ class Messages:
     def __len__(self) -> int:
         return len(self._messages)
 
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return Messages(self._messages[key])
+        return self._messages[key]
+
     def __add__(self, other: 'Messages') -> 'Messages':
         return Messages(self._messages + other._messages)
 
@@ -45,11 +50,14 @@ class Messages:
     def to_list(self) -> list[MessageDict]:
         return [message.as_dict for message in self]
 
-    def add(self, message: Message) -> None:
+    def append(self, message: Message) -> None:
         self._messages.append(message)
 
-    def add_multiple(self, messages: list[Message]) -> None:
+    def extend(self, messages: list[Message]) -> None:
         self._messages.extend(messages)
+
+    def to_context(self, title: str) -> str:
+        return f"```{title}\n{str(self.to_list())}```"
 
     @property
     def system_prompt(self) -> str:

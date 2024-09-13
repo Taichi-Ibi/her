@@ -1,1 +1,1 @@
-from .model import ModelSelector, ModelIdentifier
+from .model import GroqModel, ModelSelector, ModelIdentifier
