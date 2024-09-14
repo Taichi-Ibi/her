@@ -26,7 +26,7 @@ class Message:
 
 
 class Messages:
-    def __init__(self, messages: list[Message]) -> None:
+    def __init__(self, messages: list[Message], /) -> None:
         self._messages: list[Message] = messages
 
     def __iter__(self) -> Iterator[Message]:
@@ -40,20 +40,20 @@ class Messages:
             return Messages(self._messages[key])
         return self._messages[key]
 
-    def __add__(self, other: 'Messages') -> 'Messages':
+    def __add__(self, other: "Messages") -> "Messages":
         return Messages(self._messages + other._messages)
 
-    def __iadd__(self, other: 'Messages') -> 'Messages':
+    def __iadd__(self, other: "Messages") -> "Messages":
         self._messages.extend(other._messages)
         return self
 
     def to_list(self) -> list[MessageDict]:
         return [message.as_dict for message in self]
 
-    def append(self, message: Message) -> None:
+    def append(self, message: Message, /) -> None:
         self._messages.append(message)
 
-    def extend(self, messages: list[Message]) -> None:
+    def extend(self, messages: list[Message], /) -> None:
         self._messages.extend(messages)
 
     def to_context(self, title: str) -> str:

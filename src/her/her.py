@@ -11,55 +11,41 @@ logging.basicConfig(level=logging.INFO)
 
 class Her:
     def __init__(self) -> None:
-        self.history_path = "logs/history.jsonl"
-        self.chat_messages = Messages(messages=[])
-        self.judge_messages = Messages(messages=[])
         self.prompt = Prompt()
         self.memory = Memory()
+
+    @property
+    def _new_chat_messages(self) -> Messages:
+        print("**Start new conversation**")
+        return Messages([self.system_message, self.user_message])
 
     def _prep_messages(self, user_prompt: str) -> Messages:
         self.memory.load()
         self.history = self.memory.history
+        self.user_message = Message(role="user", content=user_prompt)
+        self.system_message = Message(role="system", content=self.prompt.system_prompt)
+
         if not self.history or user_prompt == self.history[-2].content:
-            return Messages(
-                messages=[
-                    Message(role="system", content=self.prompt.system_prompt),
-                    Message(role="user", content=user_prompt),
-                ]
-            )
-        judge_model = ModelSelector(model_id=ModelIdentifier("flm")).model
-        self.judge_messages.extend(
-            messages=Messages(
-                messages=[
-                    Message(role="system", content=self.prompt.judge_prompt),
-                    Message(
-                        role="user",
-                        content="\n\n".join(
-                            [
-                                self.history[1:].to_context(title="Message1"),
-                                Messages(
-                                    messages=[Message(role="user", content=user_prompt)]
-                                ).to_context(title="Message2"),
-                            ]
-                        ),
-                    ),
-                ]
-            )
+            return self._new_chat_messages
+
+        judge_model = ModelSelector(model_id=ModelIdentifier("judge")).model
+        msg1ctx = self.history[1:].to_context(title="Message1")
+        msg2ctx = Messages([self.user_message]).to_context(title="Message2")
+        self.judge_messages = Messages(
+            [
+                Message(role="system", content=self.prompt.judge_prompt),
+                Message(role="user", content=f"{msg1ctx}\n\n{msg2ctx}"),
+            ]
         )
-        judge_message = judge_model.invoke(messages=self.judge_messages)
-        logging.info(judge_message.__dict__)
-        if bool(re.search(r"\bTrue\b", judge_message.content)):
-            print("Continue conversation")
-            self.history.append(Message(role="user", content=user_prompt))
+        judge_response = judge_model.invoke(messages=self.judge_messages)
+        logging.info(judge_response.__dict__)
+
+        if bool(re.search(r"\bTrue\b", judge_response.content)):
+            print("**Continue conversation**")
+            self.history.append(self.user_message)
             return self.history
         else:
-            print("Start new conversation")
-            return Messages(
-                messages=[
-                    Message(role="system", content=self.prompt.system_prompt),
-                    Message(role="user", content=user_prompt),
-                ]
-            )
+            return self._new_chat_messages
 
     def invoke(self, model_id: ModelIdentifier, user_prompt: str) -> Message:
         messages = self._prep_messages(user_prompt=user_prompt)

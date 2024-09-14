@@ -17,7 +17,7 @@ class BaseLanguageModel(ABC, GeneratorConfig):
         self.model_name = model_name
 
     @abstractmethod
-    def invoke(self):
+    def invoke(self) -> Message:
         pass
 
 

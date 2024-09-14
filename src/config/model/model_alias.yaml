@@ -1,4 +1,4 @@
+judge: groq/gemma2-9b-it
 flm: groq/gemma2-9b-it
-# flm: groq/llama-3.1-70b-versatile
 slm: google/gemini-1.5-flash-latest
 llm: anthropic/claude-3-5-sonnet-20240620

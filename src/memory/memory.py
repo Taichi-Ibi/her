@@ -10,7 +10,7 @@ class Memory:
 
     def load(self) -> Messages:
         self.history = Messages(
-            messages=[
+            [
                 Message(**message)
                 for message in load_jsonl_file(file_path=self.history_path)
             ]

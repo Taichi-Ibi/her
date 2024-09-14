@@ -16,21 +16,31 @@ class UserRequest(BaseModel):
 
 @app.get("/")
 async def home():
+
     return "Welcome to the FastAPI app!"
 
 
+def error_handler(func):
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    return wrapper
+
+
+@error_handler
 @app.post("/")
-async def process_request(request: UserRequest):
-    try:
-        model_id = ModelIdentifier(model_alias=request.model_alias)
-        her = Her()
-        model_message: Message = her.invoke(
-            model_id=model_id, user_prompt=request.user_prompt
-        )
-        copy_code_to_clipboard(model_message.content)
-        return model_message.__dict__
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+async def process_request(request: UserRequest) -> dict[str, str]:
+    model_id = ModelIdentifier(model_alias=request.model_alias)
+    her = Her()
+    model_message: Message = her.invoke(
+        model_id=model_id, user_prompt=request.user_prompt
+    )
+    copy_code_to_clipboard(model_message.content)
+
+    return model_message.__dict__
 
 
 if __name__ == "__main__":
