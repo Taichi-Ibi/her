@@ -31,7 +31,7 @@ def error_handler(func):
 
 
 @error_handler
-@app.post("/")
+@app.post("/chat")
 async def process_request(request: UserRequest) -> dict[str, str]:
     model_id = ModelIdentifier(model_alias=request.model_alias)
     her = Her()
