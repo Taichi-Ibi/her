@@ -23,7 +23,7 @@ query=$(jq -n \
 curl -s -X POST \
     -H "Content-Type: application/json" \
     -d "$query" \
-    http://127.0.0.1:8000/ \
+    http://127.0.0.1:6666/ \
     | jq -r ".content" > "$model_response_path"
 
 # Display the response using glow

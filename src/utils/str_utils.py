@@ -23,6 +23,6 @@ def copy_code_to_clipboard(text: str) -> None:
         
         # Copy to clipboard
         pyperclip.copy(all_code)
-        print("All code blocks have been copied to the clipboard.")
+        print("**All code blocks have been copied to the clipboard.**")
     else:
-        print("No code blocks found in the text.")
+        print("**No code blocks found in the text.**")

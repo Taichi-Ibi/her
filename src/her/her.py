@@ -40,7 +40,7 @@ class Her:
         judge_response = judge_model.invoke(messages=self.judge_messages)
         logging.info(judge_response.__dict__)
 
-        if bool(re.search(r"\bTrue\b", judge_response.content)):
+        if bool(re.search(r"\btrue\b", judge_response.content.lower())):
             print("**Continue conversation**")
             self.history.append(self.user_message)
             return self.history
